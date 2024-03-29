@@ -8,6 +8,7 @@ class TspGenerator {
         TspGenerator();
         std::vector<struct City> GenerateSymmetricTsp(unsigned int how_many, unsigned int min, unsigned int max);
         void SaveDataset(std::string file_name, std::vector<City> city_list);
+        struct City GenerateRadomCity(unsigned int min, unsigned int max);
 
 
 };
