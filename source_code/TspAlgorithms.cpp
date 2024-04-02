@@ -8,39 +8,8 @@ TspAlgorithms::TspAlgorithms() {
 }
 
 
-std::vector<struct City> TspAlgorithms::Genetic(std::vector <struct City> city_list,int population_size,int iterations) {
-    std::vector<std::vector<struct City>> population;
-    std::map<int,std::vector<struct City>> cycle_to_city_map;;
-    std::vector<std::vector<struct City> > next_generation;
-    std::vector<int> cycles;
-    int cycle;
-    for(int i = 0 ; i < population_size ; ++i) {
-        population.push_back(RandomRoute(city_list));
-    }
 
-    do {
-        for(auto c: population) {
-            cycle = CalculateCycle(c);
-            cycle_to_city_map[cycle] = c;
-            cycles.push_back(cycle);
-        }
-        std::sort(cycles.begin(),cycles.end());
-        for(auto it = cycles.begin()+1 ; it!= cycles.end() && it + 1 != cycles.end() ; ++it) {
-            next_generation.push_back(Cross(cycle_to_city_map[*(it)],cycle_to_city_map[*(it-1)]));
-            ++it;
-        }
-        cycle_to_city_map.clear();
-        cycles.clear();
-        population = next_generation;
-        next_generation.clear();
-    } while(population.size()>2);
-
-    return population.at(0);
-}
-
-
-
-std::vector<struct City> TspAlgorithms::TabuSearch(std::vector<struct City> city_list,int iterations,int size) {
+std::vector<struct City> TspAlgorithms::TabuSearch(std::vector<struct City> city_list,int size,int iterations) {
     std::vector<std::vector<struct City>> tabu_list;
     auto beginning_cycle = RandomRoute(city_list);
     tabu_list.push_back(beginning_cycle);
@@ -139,6 +108,43 @@ std::vector<struct City> TspAlgorithms::_2opt(std::vector<struct City> cycle) {
     return cycle;
 }
 
+std::vector<struct City> TspAlgorithms::Genetic(std::vector <struct City> city_list,int population_size,int iterations) {
+    std::vector<std::vector<struct City>> population;
+    std::map<int,std::vector<struct City>> cycle_to_city_map;;
+    std::vector<std::vector<struct City> > next_generation;
+    std::vector<int> cycles;
+    int cycle;
+    for(int i = 0 ; i < population_size ; ++i) {
+        population.push_back(RandomRoute(city_list));
+    }
+
+    do {
+        for(auto c: population) {
+            cycle = CalculateCycle(c);
+            cycle_to_city_map[cycle] = c;
+            cycles.push_back(cycle);
+        }
+        std::sort(cycles.begin(),cycles.end());
+        for(auto it = cycles.begin()+1 ; it!= cycles.end()  ; ++it) {
+            next_generation.push_back(Cross(cycle_to_city_map[*(it)],cycle_to_city_map[*(it-1)]));
+            //++it;
+        }
+        cycle_to_city_map.clear();
+        cycles.clear();
+        population = next_generation;
+        next_generation.clear();
+        --iterations;
+    } while(iterations>1);
+    auto best_path = CalculateCycle(population.at(0));
+    auto best_cycle = population.at(0);
+    for(auto c : population) {
+        if(best_path > CalculateCycle(c)) {
+            best_path = CalculateCycle(c);
+            best_cycle = c;
+        }
+    }
+    return best_cycle;//population.at(0);
+}
 int TspAlgorithms::CalculateCycle(std::vector<struct City> cycle) {
     auto result = 0;
     for(auto it = cycle.begin() + 1 ; it != cycle.end() ; ++it) {
